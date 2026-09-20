@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.13'
+      - name: Validate JSON
+        run: python -m json.tool models/catalog.json >/dev/null
+      - name: Compile Python
+        run: python -m py_compile scripts/*.py
+      - name: Validate shell
+        run: |
+          bash -n bin/cloud9-embedding-engine
+          bash -n bin/cloud9-embedding-server
+          bash -n scripts/install.sh
+      - name: Model catalog smoke
+        run: python -c 'import json; d=json.load(open("models/catalog.json")); assert len(d["models"]) >= 3'

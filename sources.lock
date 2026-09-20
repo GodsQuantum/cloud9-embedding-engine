@@ -1,0 +1,6 @@
+# Human-readable provenance lock. Checked 2026-09-20.
+LLAMA_CPP=https://github.com/ggml-org/llama.cpp
+QWEN3_EMBEDDING=https://huggingface.co/Qwen/Qwen3-Embedding-0.6B-GGUF
+JINA_V5_SMALL_RETRIEVAL=https://huggingface.co/jinaai/jina-embeddings-v5-text-small-retrieval-GGUF
+GRANITE_311M_R2=https://huggingface.co/ibm-granite/granite-embedding-311m-multilingual-r2
+EMBEDDING_GEMMA_GGUF=https://huggingface.co/ggml-org/embeddinggemma-300M-GGUF

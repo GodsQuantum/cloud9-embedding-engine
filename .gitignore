@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+.env
+*.local.env
+runtime/
+models/downloads/
+bench/results/
+*.log

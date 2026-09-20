@@ -1,0 +1,69 @@
+{
+  "schema": 1,
+  "models": [
+    {
+      "id": "qwen3-0.6b-q8",
+      "name": "Qwen3-Embedding-0.6B",
+      "source_repo": "Qwen/Qwen3-Embedding-0.6B-GGUF",
+      "hf_spec": "Qwen/Qwen3-Embedding-0.6B-GGUF:Q8_0",
+      "file": "Qwen3-Embedding-0.6B-Q8_0.gguf",
+      "license": "Apache-2.0",
+      "parameters_m": 600,
+      "context": 32768,
+      "dimensions": [1024],
+      "pooling": "last",
+      "quant": "Q8_0",
+      "size_mb": 639,
+      "status": "reference-validated",
+      "notes": "Default Cloud9 baseline. Official Qwen GGUF."
+    },
+    {
+      "id": "jina-v5-small-q6",
+      "name": "Jina Embeddings v5 Text Small Retrieval",
+      "source_repo": "jinaai/jina-embeddings-v5-text-small-retrieval-GGUF",
+      "hf_spec": "jinaai/jina-embeddings-v5-text-small-retrieval-GGUF:Q6_K",
+      "file": "v5-small-retrieval-Q6_K.gguf",
+      "license": "CC-BY-NC-4.0",
+      "parameters_m": 677,
+      "context": 32768,
+      "dimensions": [32,64,128,256,512,768,1024],
+      "pooling": "last",
+      "quant": "Q6_K",
+      "size_mb": 495,
+      "status": "candidate",
+      "notes": "119+ languages. Non-commercial license: never auto-select for commercial use."
+    },
+    {
+      "id": "granite-r2-311m",
+      "name": "Granite Embedding 311M Multilingual R2",
+      "source_repo": "ibm-granite/granite-embedding-311m-multilingual-r2",
+      "hf_spec": "",
+      "file": "",
+      "license": "Apache-2.0",
+      "parameters_m": 311,
+      "context": 32768,
+      "dimensions": [128,256,384,512,768],
+      "pooling": "cls",
+      "quant": "official ONNX/OpenVINO; verify any GGUF locally",
+      "size_mb": null,
+      "status": "candidate",
+      "notes": "200+ pretrained languages, 52 enhanced including French. Prefer IBM official artifacts; community GGUF must pass model gate."
+    },
+    {
+      "id": "embeddinggemma-300m-q8",
+      "name": "EmbeddingGemma 300M",
+      "source_repo": "ggml-org/embeddinggemma-300M-GGUF",
+      "hf_spec": "ggml-org/embeddinggemma-300M-GGUF:Q8_0",
+      "file": "embeddinggemma-300M-Q8_0.gguf",
+      "license": "Gemma",
+      "parameters_m": 308,
+      "context": 2048,
+      "dimensions": [768],
+      "pooling": "model-default",
+      "quant": "Q8_0",
+      "size_mb": 334,
+      "status": "alternative",
+      "notes": "Very compact official ggml-org conversion; shorter context than the 2026 shortlist."
+    }
+  ]
+}

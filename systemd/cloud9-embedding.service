@@ -1,0 +1,19 @@
+[Unit]
+Description=Cloud9 Embedding Engine
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/cloud9-embedding-engine/engine.env
+ExecStart=/usr/local/bin/cloud9-embedding-server
+Restart=on-failure
+RestartSec=3
+Nice=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target

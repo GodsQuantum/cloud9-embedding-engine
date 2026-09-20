@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+SELF_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SELF_DIR/.." && pwd)"
+
+if [[ -r "${C9EE_CATALOG:-}" ]]; then
+  CATALOG="$C9EE_CATALOG"
+elif [[ -r /etc/cloud9-embedding-engine/catalog.json ]]; then
+  CATALOG=/etc/cloud9-embedding-engine/catalog.json
+else
+  CATALOG="$REPO_ROOT/models/catalog.json"
+fi
+
+if [[ -d /usr/local/lib/cloud9-embedding-engine ]]; then
+  SCRIPT_DIR=/usr/local/lib/cloud9-embedding-engine
+else
+  SCRIPT_DIR="$REPO_ROOT/scripts"
+fi
+
+cmd="${1:-status}"
+shift || true
+case "$cmd" in
+  doctor)
+    printf 'catalog: '; python3 -m json.tool "$CATALOG" >/dev/null && echo ok
+    if command -v llama-server >/dev/null 2>&1; then
+      echo "llama-server: $(command -v llama-server)"
+    elif [[ -x /srv/lxc/ia-compute/data/cloud9-engine-runtime/current/upstream/bin/llama-server ]]; then
+      echo "llama-server: Cloud9 Engine runtime"
+    else
+      echo "llama-server: missing"
+      exit 1
+    fi
+    command -v vulkaninfo >/dev/null 2>&1 && vulkaninfo --summary 2>/dev/null | grep -E 'deviceName|driverName' | head -8 || true
+    ;;
+  models)
+    python3 - "$CATALOG" <<'PY'
+import json,sys
+d=json.load(open(sys.argv[1]))
+for m in d["models"]:
+    print(f'{m["id"]:<24} {m["license"]:<16} {m["context"]:>6} ctx  {m["status"]}')
+PY
+    ;;
+  serve)
+    exec "$SELF_DIR/cloud9-embedding-server" "$@"
+    ;;
+  bench)
+    exec python3 "$SCRIPT_DIR/bench_client.py" "$@"
+    ;;
+  gate)
+    exec python3 "$SCRIPT_DIR/model_gate.py" "$@"
+    ;;
+  status)
+    if command -v systemctl >/dev/null 2>&1 && systemctl list-unit-files cloud9-embedding.service >/dev/null 2>&1; then
+      systemctl --no-pager --full status cloud9-embedding.service || true
+    else
+      echo "No installed cloud9-embedding.service"
+    fi
+    ;;
+  *)
+    echo "usage: cloud9-embedding-engine {doctor|models|serve|bench|gate|status}" >&2
+    exit 64
+    ;;
+esac

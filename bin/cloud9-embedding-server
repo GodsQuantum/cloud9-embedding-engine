@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+set -Eeuo pipefail
+
+PROFILE="${C9EE_PROFILE:-production}"
+MODEL_ID="${C9EE_MODEL_ID:-qwen3-0.6b-q8}"
+HOST="${C9EE_HOST:-127.0.0.1}"
+PORT="${C9EE_PORT:-8091}"
+GPU_LAYERS="${C9EE_GPU_LAYERS:-999}"
+BATCH="${C9EE_BATCH:-2048}"
+UBATCH="${C9EE_UBATCH:-512}"
+
+case "$PROFILE" in
+  production) PARALLEL="${C9EE_PARALLEL:-1}"; CONTEXT="${C9EE_CONTEXT:-8192}" ;;
+  balanced)   PARALLEL="${C9EE_PARALLEL:-2}"; CONTEXT="${C9EE_CONTEXT:-8192}" ;;
+  bulk)       PARALLEL="${C9EE_PARALLEL:-4}"; CONTEXT="${C9EE_CONTEXT:-16384}" ;;
+  *) echo "Unknown C9EE_PROFILE: $PROFILE" >&2; exit 64 ;;
+esac
+
+case "$MODEL_ID" in
+  qwen3-0.6b-q8)
+    MODEL_SPEC="${C9EE_MODEL_SPEC:-Qwen/Qwen3-Embedding-0.6B-GGUF:Q8_0}"
+    POOLING="${C9EE_POOLING:-last}"
+    ;;
+  jina-v5-small-q6)
+    MODEL_SPEC="${C9EE_MODEL_SPEC:-jinaai/jina-embeddings-v5-text-small-retrieval-GGUF:Q6_K}"
+    POOLING="${C9EE_POOLING:-last}"
+    ;;
+  embeddinggemma-300m-q8)
+    MODEL_SPEC="${C9EE_MODEL_SPEC:-ggml-org/embeddinggemma-300M-GGUF:Q8_0}"
+    POOLING="${C9EE_POOLING:-}"
+    ;;
+  granite-r2-311m)
+    if [[ -z "${C9EE_MODEL_PATH:-}" && -z "${C9EE_MODEL_SPEC:-}" ]]; then
+      echo "Granite R2 has no engine-default GGUF. Set C9EE_MODEL_PATH to a locally verified conversion or C9EE_MODEL_SPEC explicitly." >&2
+      exit 78
+    fi
+    MODEL_SPEC="${C9EE_MODEL_SPEC:-}"
+    POOLING="${C9EE_POOLING:-cls}"
+    ;;
+  custom)
+    MODEL_SPEC="${C9EE_MODEL_SPEC:-}"
+    POOLING="${C9EE_POOLING:-last}"
+    [[ -n "${C9EE_MODEL_PATH:-}" || -n "$MODEL_SPEC" ]] || { echo "custom requires C9EE_MODEL_PATH or C9EE_MODEL_SPEC" >&2; exit 64; }
+    ;;
+  *) echo "Unknown C9EE_MODEL_ID: $MODEL_ID" >&2; exit 64 ;;
+esac
+
+if [[ -n "${C9EE_LLAMA_SERVER:-}" ]]; then
+  LLAMA_SERVER="$C9EE_LLAMA_SERVER"
+elif command -v llama-server >/dev/null 2>&1; then
+  LLAMA_SERVER="$(command -v llama-server)"
+elif [[ -x /srv/lxc/ia-compute/data/cloud9-engine-runtime/current/upstream/bin/llama-server ]]; then
+  LLAMA_SERVER=/srv/lxc/ia-compute/data/cloud9-engine-runtime/current/upstream/bin/llama-server
+else
+  echo "llama-server not found. Set C9EE_LLAMA_SERVER." >&2
+  exit 69
+fi
+
+args=(--embedding -ngl "$GPU_LAYERS" -c "$CONTEXT" -b "$BATCH" -ub "$UBATCH" -np "$PARALLEL" --host "$HOST" --port "$PORT" --no-webui)
+[[ -n "$POOLING" ]] && args+=(--pooling "$POOLING")
+
+if [[ -n "${C9EE_MODEL_PATH:-}" ]]; then
+  [[ -r "$C9EE_MODEL_PATH" ]] || { echo "Model not readable: $C9EE_MODEL_PATH" >&2; exit 66; }
+  args=(-m "$C9EE_MODEL_PATH" "${args[@]}")
+else
+  [[ -n "$MODEL_SPEC" ]] || { echo "No model spec configured" >&2; exit 64; }
+  args=(-hf "$MODEL_SPEC" "${args[@]}")
+fi
+
+exec "$LLAMA_SERVER" "${args[@]}"
