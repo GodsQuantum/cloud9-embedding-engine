@@ -48,6 +48,18 @@ Qwen3-Embedding-0.6B Q8_0, llama.cpp Vulkan, Ryzen 7 8845HS / Radeon 780M:
 
 These are hardware-specific measurements, not universal claims. Large real-world chunks are slower; use the benchmark tool on your own corpus.
 
+
+September 20, 2026 bulk-profile tuning on the reference 8845HS / Radeon 780M, Qwen3-Embedding-0.6B Q8_0, 32 synthetic ~556-token inputs:
+
+| llama-server profile | Throughput |
+|---|---:|
+| `np=4, ubatch=512` | 4.59 embeddings/s |
+| `np=4, ubatch=2048` | 5.66 embeddings/s |
+| `np=8, ubatch=2048` | **10.85 embeddings/s** |
+| `np=16, ubatch=2048` | 6.09 embeddings/s |
+
+The result is deliberately profile-specific: current llama.cpp embedding mode requires the batch to fit one ubatch, and Vulkan multi-slot scaling is hardware/build dependent.
+
 ## Quick start
 
 ```bash
@@ -73,7 +85,7 @@ C9EE_MODEL_ID=jina-v5-small-q6 cloud9-embedding-server
 ```text
 production  1 slot   lowest GPU contention; recommended for normal RAG/query traffic
 balanced    2 slots  moderate concurrency
-bulk        4 slots  initial corpus ingestion; revert after the bulk run
+bulk        8 slots  initial corpus ingestion on the validated 8845HS/780M profile; revert after the bulk run
 ```
 
 The engine does **not** claim zero interference with a large LLM sharing the same iGPU. Production mode minimizes the collision window; benchmark concurrent inference on your hardware before increasing slots.

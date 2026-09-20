@@ -30,7 +30,7 @@ On a shared Radeon 780M, two Vulkan processes can coexist but they still contend
 - a small resident embedding model;
 - systemd `Nice=10` for CPU-side work;
 - no artificial hard CPU reservation;
-- a separate `bulk` profile only for initial indexing.
+- a separate `bulk` profile only for initial indexing; on the validated 8845HS/780M profile it uses 8 slots and `ubatch=2048`, while production stays at one slot / `ubatch=512`.
 
 The engine makes no promise of zero LLM slowdown. Measure simultaneous inference before promoting `balanced` or `bulk` to a permanent profile.
 
