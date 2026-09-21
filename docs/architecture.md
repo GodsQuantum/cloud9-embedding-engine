@@ -28,7 +28,8 @@ On a shared Radeon 780M, two Vulkan processes can coexist but they still contend
 
 - one embedding slot;
 - a small resident embedding model;
-- systemd `Nice=10` for CPU-side work;
+- systemd `Nice=10`, idle I/O scheduling, low CPU/I/O weights, and a positive OOM score so embeddings yield before critical services;
+- llama.cpp host prompt cache disabled by default (`--cache-ram 0`), because embedding chunks and queries are normally unique; this avoids an otherwise large resident cache and repeated eviction work;
 - no artificial hard CPU reservation;
 - a separate `bulk` profile only for initial indexing; on the validated 8845HS/780M profile it uses 8 slots and `ubatch=2048`, while production stays at one slot / `ubatch=512`.
 

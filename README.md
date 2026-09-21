@@ -88,6 +88,8 @@ balanced    2 slots  moderate concurrency
 bulk        8 slots  initial corpus ingestion on the validated 8845HS/780M profile; revert after the bulk run
 ```
 
+All profiles default to `C9EE_CACHE_RAM=0`: embedding workloads rarely repeat identical prompts, so llama.cpp host prompt cache adds memory pressure without useful reuse. Override it only after workload-specific measurement.
+
 The engine does **not** claim zero interference with a large LLM sharing the same iGPU. Production mode minimizes the collision window; benchmark concurrent inference on your hardware before increasing slots.
 
 ## Repository layout
